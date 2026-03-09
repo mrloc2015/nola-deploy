@@ -1,0 +1,30 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Find autoloader
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$autoloaded = false;
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require $path;
+        $autoloaded = true;
+        break;
+    }
+}
+
+if (!$autoloaded) {
+    fwrite(STDERR, "Error: Could not find Composer autoloader.\n");
+    fwrite(STDERR, "Run 'composer install' in the nola-deploy directory first.\n");
+    exit(1);
+}
+
+use Nola\Deploy\Application;
+
+$app = new Application();
+$app->run();

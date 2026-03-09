@@ -1,0 +1,7 @@
+/vendor/
+/.phpunit.cache/
+/.nola-deploy.yaml
+*.phar
+.DS_Store
+.idea/
+.vscode/

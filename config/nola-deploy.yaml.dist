@@ -1,0 +1,111 @@
+# =============================================================================
+# nola-deploy configuration
+# Similar to Magento Cloud .magento.env.yaml — controls all deployment behavior
+#
+# Generate this file:  nola-deploy init
+# Validate & preview:  nola-deploy init --dry-run
+# =============================================================================
+
+# --- Store Mapping -----------------------------------------------------------
+# Auto-detected from database. Each store view maps to a theme + locales.
+# nola-deploy uses this to determine exactly what to deploy.
+#
+# stores:
+#   default:
+#     theme: Magento/luma
+#     locales:
+#       - en_US
+#   french_store:
+#     theme: Vendor/custom-theme
+#     locales:
+#       - fr_FR
+#   admin:
+#     theme: Magento/backend
+#     locales:
+#       - en_US
+
+# --- PHP Settings ------------------------------------------------------------
+php_binary: php
+memory_limit: "-1"
+
+# --- Theme Detection ---------------------------------------------------------
+# When auto_detect is true AND no stores mapping above, themes are detected
+# from database. If stores mapping exists, it takes priority.
+themes:
+  auto_detect: true
+  exclude: []
+
+# --- Locale Detection --------------------------------------------------------
+# Same as themes — stores mapping takes priority when present.
+locales:
+  auto_detect: true
+  list:
+    - en_US
+
+# --- DI Compilation ----------------------------------------------------------
+di_compile:
+  enabled: true
+  cache: true          # Cache compiled DI for incremental builds
+  gc_disable: true     # Disable GC during compile (30% faster)
+
+# --- Static Content Deploy ---------------------------------------------------
+static_content:
+  strategy: quick      # quick | standard | compact
+  parallel_jobs: 4     # Number of parallel SCD workers
+  use_node_less: true  # Use Node.js LESS compiler (faster than PHP)
+  use_go_deployer: true # Use Go-based static deployer if available
+
+# --- Deployment Mode ---------------------------------------------------------
+deployment:
+  mode: standard       # standard | artifact | zero-downtime
+  releases_dir: releases
+  releases_keep: 5
+  shared_dirs:
+    - var/log
+    - var/session
+    - pub/media
+    - var/import
+    - var/export
+  shared_files:
+    - app/etc/env.php
+  auto_rollback: true  # Auto-rollback on health check failure
+
+# --- Health Check ------------------------------------------------------------
+health_check:
+  enabled: true
+  urls:
+    - /
+  timeout: 10
+
+# --- Cache Control -----------------------------------------------------------
+# flush_all: true flushes everything. Set to false + list specific types below.
+cache:
+  flush_all: true
+  types: []
+  # types:
+  #   - config
+  #   - layout
+  #   - block_html
+  #   - full_page
+
+# --- Maintenance Page --------------------------------------------------------
+# Path to your custom maintenance HTML file (relative to Magento root).
+# If this file doesn't exist, nola-deploy uses its built-in template.
+# Create a single HTML file — nola-deploy handles the rest.
+maintenance:
+  page: nola-deploy-maintenance.html
+
+# --- Post-Deploy Commands ----------------------------------------------------
+# Shell commands to run after deployment completes.
+# Runs from Magento root directory.
+post_deploy: []
+# post_deploy:
+#   - bin/magento indexer:reindex
+#   - bin/magento cache:clean full_page
+
+# --- Cache Warmup ------------------------------------------------------------
+cache_warmup:
+  enabled: true
+  urls:
+    - /
+  concurrency: 4
