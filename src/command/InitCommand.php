@@ -191,7 +191,33 @@ HELP);
             $allPassed = false;
         }
 
+        // OPcache detection (informational — not a pass/fail check)
+        $this->detectOpcache($logger);
+
         return $allPassed;
+    }
+
+    /**
+     * Detect OPcache status and log informational note.
+     * Not a pass/fail check — just awareness for PHP code deployments.
+     */
+    private function detectOpcache(Logger $logger): void
+    {
+        if (!function_exists('opcache_get_status')) {
+            $logger->info('  [--] OPcache not available');
+            return;
+        }
+
+        $status = @opcache_get_status(false);
+        if ($status === false || !($status['opcache_enabled'] ?? false)) {
+            $logger->info('  [--] OPcache disabled');
+            return;
+        }
+
+        $scripts = $status['opcache_statistics']['num_cached_scripts'] ?? 0;
+        $memory = round(($status['memory_usage']['used_memory'] ?? 0) / 1024 / 1024, 1);
+        $logger->info("  [OK] OPcache enabled ({$scripts} cached scripts, {$memory} MB)");
+        $logger->info('       Note: After PHP/DI code changes, restart PHP-FPM to clear bytecode cache');
     }
 
     private function logCheck(Logger $logger, bool $pass, string $label, string $failMsg = ''): void
